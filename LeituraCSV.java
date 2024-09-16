@@ -2,10 +2,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
 import java.util.Scanner;
 
 public class LeituraCSV {
@@ -41,10 +37,8 @@ public class LeituraCSV {
         scanner.close();
     }
 
-    // Método para ler e organizar o conteúdo de um CSV
+    // Método para ler e exibir o conteúdo de um CSV
     public static void lerCSV(String caminhoArquivo) {
-        Map<String, List<String[]>> dadosPorSubestacao = new HashMap<>();
-
         try (BufferedReader br = new BufferedReader(new FileReader(caminhoArquivo))) {
             String linha;
             boolean primeiraLinha = true;
@@ -59,30 +53,16 @@ public class LeituraCSV {
                 // Divide a linha em colunas usando a vírgula como delimitador
                 String[] colunas = linha.split(",", -1);
 
-                if (colunas.length >= 3) {
-                    String subestacao = colunas[1]; // Segunda coluna: Subestacao
-                    String[] dados = new String[]{colunas[0], colunas[2]}; // Mes, Consumo(kWh)
-
-                    // Adiciona os dados ao mapa
-                    dadosPorSubestacao.putIfAbsent(subestacao, new ArrayList<>());
-                    dadosPorSubestacao.get(subestacao).add(dados);
+                // Exibe a linha lida
+                for (String valor : colunas) {
+                    System.out.print(valor + " ");
                 }
+                System.out.println(); // Nova linha após cada linha do CSV
             }
 
-            // Exibe o nome do arquivo lido
+            // Exibe o nome do arquivo processado
             System.out.println("Arquivo processado: " + caminhoArquivo);
 
-            // Exibe os dados organizados por subestação
-            for (Map.Entry<String, List<String[]>> entry : dadosPorSubestacao.entrySet()) {
-                String subestacao = entry.getKey();
-                List<String[]> dados = entry.getValue();
-
-                System.out.println("Dados para " + subestacao + ":");
-                for (String[] linhaArray : dados) {
-                    System.out.println("Mês: " + linhaArray[0] + ", Consumo(kWh): " + linhaArray[1]);
-                }
-                System.out.println(); // Linha em branco entre os dados das subestações
-            }
         } catch (IOException e) {
             System.out.println("Erro ao ler o arquivo: " + caminhoArquivo);
             e.printStackTrace();
