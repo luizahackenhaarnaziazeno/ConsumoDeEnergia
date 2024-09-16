@@ -44,12 +44,12 @@ public class MatrizCSV {
     // Método para processar o arquivo CSV e agrupar os dados
     private static Map<String, Map<String, Integer>> processarCSV(String caminhoArquivo) {
         Map<String, Map<String, Integer>> dados = new LinkedHashMap<>();
+        Set<String> mesesSet = new LinkedHashSet<>();
         String[] meses = {"Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"};
-        
+
         // Inicializa o mapa de meses
-        Map<String, Integer> consumoPorMes = new LinkedHashMap<>();
         for (String mes : meses) {
-            consumoPorMes.put(mes, 0);
+            mesesSet.add(mes);
         }
 
         try (BufferedReader br = new BufferedReader(new FileReader(caminhoArquivo))) {
@@ -70,9 +70,9 @@ public class MatrizCSV {
                 int consumo = Integer.parseInt(colunas[2]);
 
                 // Adiciona o consumo aos dados
-                dados.putIfAbsent(subestacao, new LinkedHashMap<>(consumoPorMes));
+                dados.putIfAbsent(subestacao, new LinkedHashMap<>());
                 Map<String, Integer> consumoSubestacao = dados.get(subestacao);
-                consumoSubestacao.put(mes, consumoSubestacao.get(mes) + consumo);
+                consumoSubestacao.put(mes, consumoSubestacao.getOrDefault(mes, 0) + consumo);
             }
         } catch (IOException e) {
             System.out.println("Erro ao ler o arquivo: " + caminhoArquivo);
@@ -86,6 +86,7 @@ public class MatrizCSV {
     private static void exibirMatriz(Map<String, Map<String, Integer>> dados) {
         // Cabeçalhos dos meses
         String[] meses = {"Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"};
+        
         System.out.println("Matriz de Consumo por Subestação");
         System.out.print("     ");
         for (String mes : meses) {
