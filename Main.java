@@ -16,7 +16,7 @@ public class Main {
         boolean continuar = true;
 
         while (continuar) {
-            System.out.println("\n === Menu de leitura de CSV ===");
+            System.out.println("\n === Menu ===");
             System.out.println("1 - Matriz contendo o total de energia consumido mensal para cada subestação:");
             System.out.println("2 - Subestação com maior consumo mensal:");
             System.out.println("3 - Subestação com menor consumo mensal:");
