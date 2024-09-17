@@ -2,17 +2,17 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
-import java.util.Set;
 
 public class Main {
 
+    // Definindo as constantes
+    private static final String[] MESES = {"Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"};
+
     public static void main(String[] args) {
-        
-        Scanner scannerp = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in);
         boolean continuar = true;
 
         while (continuar) {
@@ -22,29 +22,29 @@ public class Main {
             System.out.println("3 - Subestação com menor consumo mensal:");
             System.out.println("4 - Sair");
             System.out.print("Escolha uma opção: ");
-            int opcao = scannerp.nextInt();
-            scannerp.nextLine();  // Limpa o buffer
+            int opcao = scanner.nextInt();
+            scanner.nextLine();  // Limpa o buffer
 
             switch (opcao) {
                 case 1:
                     String arquivoSelecionado = escolhendoArquivo();
                     if (arquivoSelecionado != null) {
-                        Map<String, Map<String, Integer>> dados = processarCSV("/workspaces/T1_ALEST/casosdeteste/" + arquivoSelecionado);
+                        Dados[] dados = processarCSV("/workspaces/T1_ALEST/casosdeteste/" + arquivoSelecionado);
                         exibirMatriz(dados);
                     }
                     break;
                 case 2:
                     arquivoSelecionado = escolhendoArquivo();
                     if (arquivoSelecionado != null) {
-                        Map<String, Map<String, Integer>> dados = processarCSV("/workspaces/T1_ALEST/casosdeteste/" + arquivoSelecionado);
-                        MaiorConsumoPorMes(dados);
+                        Dados[] dados = processarCSV("/workspaces/T1_ALEST/casosdeteste/" + arquivoSelecionado);
+                        maiorConsumoPorMes(dados);
                     }
                     break;
                 case 3:
                     arquivoSelecionado = escolhendoArquivo();
                     if (arquivoSelecionado != null) {
-                        Map<String, Map<String, Integer>> dados = processarCSV("/workspaces/T1_ALEST/casosdeteste/" + arquivoSelecionado);
-                        MenorConsumoPorMes(dados);
+                        Dados[] dados = processarCSV("/workspaces/T1_ALEST/casosdeteste/" + arquivoSelecionado);
+                        menorConsumoPorMes(dados);
                     }
                     break;
                 case 4:
@@ -55,14 +55,14 @@ public class Main {
                     System.out.println("Opção inválida. Tente novamente.");
             }
         }
-        scannerp.close();
+        scanner.close();
     }
 
     // Método para escolher o arquivo
     private static String escolhendoArquivo() {
         String pasta = "/workspaces/T1_ALEST/casosdeteste"; // Caminho para a pasta com os arquivos CSV
         Scanner scanner = new Scanner(System.in);
-        
+
         // Lista todos os arquivos CSV na pasta
         File pastaDir = new File(pasta);
         File[] arquivos = pastaDir.listFiles((dir, name) -> name.endsWith(".csv"));
@@ -74,7 +74,7 @@ public class Main {
                 System.out.println((i + 1) + ". " + arquivos[i].getName());
             }
             System.out.print("Digite o número do arquivo desejado: ");
-            
+
             int escolha;
             while (true) {
                 try {
@@ -98,11 +98,21 @@ public class Main {
             return null; // Retorna null se não houver arquivos na pasta
         }
     }
-    
+
+    // Definindo a estrutura para armazenar dados de consumo
+    static class Dados {
+        String subestacao;
+        int[] consumos;  // Array com 12 valores (um para cada mês)
+
+        Dados(String subestacao) {
+            this.subestacao = subestacao;
+            this.consumos = new int[12];  // Inicializa o array de consumos
+        }
+    }
+
     // Método para processar o arquivo CSV e agrupar os dados
-    private static Map<String, Map<String, Integer>> processarCSV(String caminhoArquivo) {
-        Map<String, Map<String, Integer>> dados = new LinkedHashMap<>();
-        String[] meses = {"Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"};
+    private static Dados[] processarCSV(String caminhoArquivo) {
+        List<Dados> listaDados = new ArrayList<>();
 
         try (BufferedReader br = new BufferedReader(new FileReader(caminhoArquivo))) {
             String linha;
@@ -121,148 +131,133 @@ public class Main {
                 String subestacao = colunas[1];
                 int consumo = Integer.parseInt(colunas[2]);
 
-                // Adiciona o consumo aos dados
-                dados.putIfAbsent(subestacao, new LinkedHashMap<>());
-                Map<String, Integer> consumoSubestacao = dados.get(subestacao);
-                consumoSubestacao.put(mes, consumoSubestacao.getOrDefault(mes, 0) + consumo);
+                int mesIndex = -1;
+                for (int i = 0; i < MESES.length; i++) {
+                    if (MESES[i].equals(mes)) {
+                        mesIndex = i;
+                        break;
+                    }
+                }
+
+                if (mesIndex != -1) {
+                    Dados entry = findOrCreateEntry(listaDados, subestacao);
+                    entry.consumos[mesIndex] += consumo;
+                }
             }
         } catch (IOException e) {
             System.out.println("Erro ao ler o arquivo: " + caminhoArquivo);
             e.printStackTrace();
         }
 
-        return dados;
+        return listaDados.toArray(new Dados[0]);
+    }
+
+    // Método para encontrar ou criar uma entrada para a subestação
+    private static Dados findOrCreateEntry(List<Dados> dados, String subestacao) {
+        for (Dados entry : dados) {
+            if (entry.subestacao.equals(subestacao)) {
+                return entry;
+            }
+        }
+
+        // Se não encontrado, cria uma nova entrada
+        Dados newEntry = new Dados(subestacao);
+        dados.add(newEntry);
+        return newEntry;
     }
 
     // Método para exibir a matriz com o formato desejado
-    // Método para exibir a matriz com o formato desejado
-    private static void exibirMatriz(Map<String, Map<String, Integer>> dados) {
-        // Cabeçalhos dos meses
-        String[] meses = {"Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"};
-        
-        // Define o comprimento fixo para cada coluna (ajuste conforme necessário)
-        int larguraColuna = 10;
-        int larguraSubestacao = 15;  // Maior largura para a coluna da subestação
-    
+    private static void exibirMatriz(Dados[] dados) {
         System.out.println("Matriz de Consumo por Subestação");
-        
+
         // Exibe cabeçalhos dos meses
-        System.out.print(String.format("%-" + larguraSubestacao + "s", "Subestacao"));
-        for (String mes : meses) {
-            System.out.print(String.format("%-" + larguraColuna + "s", mes.substring(0, 3)));
+        System.out.print(String.format("%-15s", "Subestacao"));
+        for (String mes : MESES) {
+            System.out.print(String.format("%-10s", mes.substring(0, 3)));
         }
         System.out.println();
-    
+
         // Exibe cada subestação e seus consumos
-        for (Map.Entry<String, Map<String, Integer>> entry : dados.entrySet()) {
-            String subestacao = entry.getKey();
-            Map<String, Integer> consumos = entry.getValue();
-    
-            System.out.print(String.format("%-" + larguraSubestacao + "s", subestacao));
-            for (String mes : meses) {
-                System.out.print(String.format("%-" + larguraColuna + "d", consumos.getOrDefault(mes, 0)));
+        for (Dados entry : dados) {
+            System.out.print(String.format("%-15s", entry.subestacao));
+            for (int consumo : entry.consumos) {
+                System.out.print(String.format("%-10d", consumo));
             }
             System.out.println();
         }
     }
-    
-    
 
     // Método para exibir a matriz com o formato desejado e calcular o maior consumo mensal
-    private static void MaiorConsumoPorMes(Map<String, Map<String, Integer>> dados) {
-        // Cabeçalhos dos meses
-        String[] meses = {"Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"};
-
-        // Variáveis para armazenar o maior consumo e a subestação/mês correspondentes
+    private static void maiorConsumoPorMes(Dados[] dados) {
         int maiorConsumo = 0;
         String subestacaoMaiorConsumo = "";
         String mesMaiorConsumo = "";
 
-        // Exibe a matriz de consumo
         System.out.println("Matriz de Consumo por Subestação");
-        int larguraColuna = 10;  // A mesma largura para alinhar com o cabeçalho
-        System.out.print(String.format("%-" + larguraColuna + "s", "Subestacao"));
-        for (String mes : meses) {
-            System.out.print(String.format("%-" + larguraColuna + "s", mes.substring(0, 3)));
+        System.out.print(String.format("%-15s", "Subestacao"));
+        for (String mes : MESES) {
+            System.out.print(String.format("%-10s", mes.substring(0, 3)));
         }
         System.out.println();
 
-        // Exibe cada subestação e seus consumos, e calcula o maior consumo geral
-        for (Map.Entry<String, Map<String, Integer>> entry : dados.entrySet()) {
-            String subestacao = entry.getKey();
-            Map<String, Integer> consumos = entry.getValue();
+        for (Dados entry : dados) {
+            System.out.print(String.format("%-15s", entry.subestacao));
 
-            System.out.print(String.format("%-" + larguraColuna + "s", subestacao));
-            
-            for (String mes : meses) {
-                int consumoMes = consumos.getOrDefault(mes, 0);
-                System.out.print(String.format("%-" + larguraColuna + "d", consumoMes));
+            for (int i = 0; i < entry.consumos.length; i++) {
+                int consumoMes = entry.consumos[i];
+                System.out.print(String.format("%-10d", consumoMes));
 
-                // Verifica se o consumo deste mês é o maior até agora
                 if (consumoMes > maiorConsumo) {
                     maiorConsumo = consumoMes;
-                    subestacaoMaiorConsumo = subestacao;
-                    mesMaiorConsumo = mes;
+                    subestacaoMaiorConsumo = entry.subestacao;
+                    mesMaiorConsumo = MESES[i];
                 }
             }
             System.out.println();
         }
 
-        // Exibe a subestação com maior consumo e o mês correspondente
         if (!subestacaoMaiorConsumo.isEmpty() && !mesMaiorConsumo.isEmpty()) {
             System.out.println("Subestação com maior consumo mensal:");
             System.out.println(subestacaoMaiorConsumo + " - " + mesMaiorConsumo.substring(0, 3) + " - " + maiorConsumo);
         } else {
-            System.out.println("Não há consumos válidos para determinar o maior consumo.");
+            System.out.println("Não há dados suficientes para determinar o maior consumo mensal.");
         }
     }
 
     // Método para exibir a matriz com o formato desejado e calcular o menor consumo mensal
-    private static void MenorConsumoPorMes(Map<String, Map<String, Integer>> dados) {
-        // Cabeçalhos dos meses
-        String[] meses = {"Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"};
-
-        // Variáveis para armazenar o menor consumo e a subestação/mês correspondentes
+    private static void menorConsumoPorMes(Dados[] dados) {
         int menorConsumo = Integer.MAX_VALUE;
         String subestacaoMenorConsumo = "";
         String mesMenorConsumo = "";
 
-        // Exibe a matriz de consumo
         System.out.println("Matriz de Consumo por Subestação");
-        int larguraColuna = 10;  // A mesma largura para alinhar com o cabeçalho
-        System.out.print(String.format("%-" + larguraColuna + "s", "Subestacao"));
-        for (String mes : meses) {
-            System.out.print(String.format("%-" + larguraColuna + "s", mes.substring(0, 3)));
+        System.out.print(String.format("%-15s", "Subestacao"));
+        for (String mes : MESES) {
+            System.out.print(String.format("%-10s", mes.substring(0, 3)));
         }
         System.out.println();
 
-        // Exibe cada subestação e seus consumos, e calcula o menor consumo geral
-        for (Map.Entry<String, Map<String, Integer>> entry : dados.entrySet()) {
-            String subestacao = entry.getKey();
-            Map<String, Integer> consumos = entry.getValue();
+        for (Dados entry : dados) {
+            System.out.print(String.format("%-15s", entry.subestacao));
 
-            System.out.print(String.format("%-" + larguraColuna + "s", subestacao));
-            
-            for (String mes : meses) {
-                int consumoMes = consumos.getOrDefault(mes, 0);
-                System.out.print(String.format("%-" + larguraColuna + "d", consumoMes));
+            for (int i = 0; i < entry.consumos.length; i++) {
+                int consumoMes = entry.consumos[i];
+                System.out.print(String.format("%-10d", consumoMes));
 
-                // Verifica se o consumo deste mês é o menor até agora
-                if (consumoMes > 0 && consumoMes < menorConsumo) {
+                if (consumoMes < menorConsumo && consumoMes > 0) {
                     menorConsumo = consumoMes;
-                    subestacaoMenorConsumo = subestacao;
-                    mesMenorConsumo = mes;
+                    subestacaoMenorConsumo = entry.subestacao;
+                    mesMenorConsumo = MESES[i];
                 }
             }
             System.out.println();
         }
 
-        // Exibe a subestação com menor consumo e o mês correspondente
         if (!subestacaoMenorConsumo.isEmpty() && !mesMenorConsumo.isEmpty()) {
             System.out.println("Subestação com menor consumo mensal:");
             System.out.println(subestacaoMenorConsumo + " - " + mesMenorConsumo.substring(0, 3) + " - " + menorConsumo);
         } else {
-            System.out.println("Não há consumos válidos para determinar o menor consumo.");
+            System.out.println("Não há dados suficientes para determinar o menor consumo mensal.");
         }
     }
 }
