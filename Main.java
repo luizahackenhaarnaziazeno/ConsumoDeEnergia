@@ -21,7 +21,8 @@ public class Main {
             System.out.println("2 - Subestação com maior consumo mensal:");
             System.out.println("3 - Subestação com menor consumo mensal:");
             System.out.println("4 - Total geral de consumo de energia ao longo do ano:");
-            System.out.println("5 - Sair");
+             System.out.println("5 - Média de consumo mensal por subestação:");
+            System.out.println("6 - Sair");
             System.out.print("Escolha uma opção: ");
             int opcao = scanner.nextInt();
             scanner.nextLine();  // Limpa o buffer
@@ -56,8 +57,16 @@ public class Main {
                         totalGeralConsumo(dados);
                     }
                     break;
+                   
+                   case 5:   
+                    arquivoSelecionado = escolhendoArquivo();
+                    if (arquivoSelecionado != null) {
+                        Dados[] dados = processarCSV("/workspaces/T1_ALEST/casosdeteste/" + arquivoSelecionado);
+                        mediaConsumoMensalPorSubestacao(dados);
+                    }
+                    break;    
 
-                case 5:
+                case 6:
                     System.out.println("Saindo...");
                     continuar = false;
                     break;
@@ -288,4 +297,20 @@ public class Main {
         System.out.println("Total geral de consumo: " + totalGeral);
     }
 
+     // Método para exibir a média de consumo mensal por subestação
+     private static void mediaConsumoMensalPorSubestacao(Dados[] dados) {
+        System.out.println("Média de consumo mensal por subestação");
+
+        for (Dados entry : dados) {
+            // Calcula a média mensal
+            int totalConsumo = 0;
+            for (int consumo : entry.consumos) {
+                totalConsumo += consumo;
+            }
+            double mediaMensal = totalConsumo / 12.0;
+
+            // Exibe o resultado formatado
+            System.out.printf("%s %.2f%n", entry.subestacao, mediaMensal);
+        }
+    }
 }
