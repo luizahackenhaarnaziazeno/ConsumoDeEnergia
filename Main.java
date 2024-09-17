@@ -20,7 +20,8 @@ public class Main {
             System.out.println("1 - Matriz contendo o total de energia consumido mensal para cada subestação:");
             System.out.println("2 - Subestação com maior consumo mensal:");
             System.out.println("3 - Subestação com menor consumo mensal:");
-            System.out.println("4 - Sair");
+            System.out.println("4 - Total geral de consumo de energia ao longo do ano:");
+            System.out.println("5 - Sair");
             System.out.print("Escolha uma opção: ");
             int opcao = scanner.nextInt();
             scanner.nextLine();  // Limpa o buffer
@@ -47,7 +48,16 @@ public class Main {
                         menorConsumoPorMes(dados);
                     }
                     break;
-                case 4:
+
+                    case 4:
+                    arquivoSelecionado = escolhendoArquivo();
+                    if (arquivoSelecionado != null) {
+                        Dados[] dados = processarCSV("/workspaces/T1_ALEST/casosdeteste/" + arquivoSelecionado);
+                        totalGeralConsumo(dados);
+                    }
+                    break;
+
+                case 5:
                     System.out.println("Saindo...");
                     continuar = false;
                     break;
@@ -260,4 +270,25 @@ public class Main {
             System.out.println("Não há dados suficientes para determinar o menor consumo mensal.");
         }
     }
+
+     // Método para exibir a matriz com o formato desejado e calcular o total geral de consumo de energia
+     private static void totalGeralConsumo(Dados[] dados) {
+        // Exibe a matriz
+        exibirMatriz(dados);
+
+        // Calcula o total geral de consumo
+        int totalGeral = 0;
+        for (Dados entry : dados) {
+            for (int consumo : entry.consumos) {
+                totalGeral += consumo;
+            }
+        }
+
+        // Exibe o total geral
+        System.out.println("Total geral de consumo: " + totalGeral);
+    }
+
+    
+
+
 }
