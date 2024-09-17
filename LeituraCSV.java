@@ -26,7 +26,8 @@ public class LeituraCSV {
             if (escolha >= 1 && escolha <= arquivos.length) {
                 File arquivoSelecionado = arquivos[escolha - 1];
                 System.out.println("Lendo arquivo: " + arquivoSelecionado.getName());
-                lerCSV(arquivoSelecionado.getAbsolutePath()); // Lê o arquivo CSV
+                String[][] conteudoCSV = lerCSV(arquivoSelecionado.getAbsolutePath()); // Lê o arquivo CSV e armazena em um vetor
+                exibirConteudo(conteudoCSV); // Exibe o conteúdo do vetor
             } else {
                 System.out.println("Escolha inválida.");
             }
@@ -37,8 +38,11 @@ public class LeituraCSV {
         scanner.close();
     }
 
-    // Método para ler e exibir o conteúdo de um CSV
-    public static void lerCSV(String caminhoArquivo) {
+    // Método para ler e armazenar o conteúdo de um CSV em um vetor
+    public static String[][] lerCSV(String caminhoArquivo) {
+        String[][] conteudoCSV = new String[1000][]; // Inicializa um vetor grande o suficiente para armazenar as linhas
+        int linhaIndex = 0;
+
         try (BufferedReader br = new BufferedReader(new FileReader(caminhoArquivo))) {
             String linha;
             boolean primeiraLinha = true;
@@ -52,20 +56,42 @@ public class LeituraCSV {
 
                 // Divide a linha em colunas usando a vírgula como delimitador
                 String[] colunas = linha.split(",", -1);
+                conteudoCSV[linhaIndex++] = colunas; // Adiciona as colunas ao vetor
 
-                // Exibe a linha lida
-                for (String valor : colunas) {
-                    System.out.print(valor + " ");
+                // Verifica se precisamos aumentar o tamanho do vetor
+                if (linhaIndex >= conteudoCSV.length) {
+                    // Caso o vetor esteja cheio, aumenta seu tamanho
+                    String[][] novoConteudoCSV = new String[conteudoCSV.length * 2][];
+                    System.arraycopy(conteudoCSV, 0, novoConteudoCSV, 0, conteudoCSV.length);
+                    conteudoCSV = novoConteudoCSV;
                 }
-                System.out.println(); // Nova linha após cada linha do CSV
             }
+
+            // Redimensiona o vetor para o tamanho real utilizado
+            String[][] conteudoFinal = new String[linhaIndex][];
+            System.arraycopy(conteudoCSV, 0, conteudoFinal, 0, linhaIndex);
 
             // Exibe o nome do arquivo processado
             System.out.println("Arquivo processado: " + caminhoArquivo);
 
+            return conteudoFinal;
+
         } catch (IOException e) {
             System.out.println("Erro ao ler o arquivo: " + caminhoArquivo);
             e.printStackTrace();
+        }
+        return new String[0][]; // Retorna um vetor vazio em caso de erro
+    }
+
+    // Método para exibir o conteúdo do vetor
+    public static void exibirConteudo(String[][] conteudoCSV) {
+        for (String[] linha : conteudoCSV) {
+            if (linha != null) {
+                for (String valor : linha) {
+                    System.out.print(valor + " ");
+                }
+                System.out.println(); // Nova linha após cada linha do CSV
+            }
         }
     }
 }
