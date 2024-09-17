@@ -272,7 +272,7 @@ public class Main {
     }
 
      // Método para exibir a matriz com o formato desejado e calcular o total geral de consumo de energia
-     private static void totalGeralConsumo(Dados[] dados) {
+    private static void totalGeralConsumo(Dados[] dados) {
         // Exibe a matriz
         exibirMatriz(dados);
 
@@ -287,8 +287,5 @@ public class Main {
         // Exibe o total geral
         System.out.println("Total geral de consumo: " + totalGeral);
     }
-
-    
-
 
 }
