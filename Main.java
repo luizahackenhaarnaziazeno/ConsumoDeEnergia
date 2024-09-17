@@ -165,7 +165,7 @@ public class Main {
                 }
 
                 if (mesIndex != -1) {
-                    Dados entry = findOrCreateEntry(dados, subestacao, count);
+                    Dados entry = EncontrarSubestacao(dados, subestacao, count);
                     entry.consumos[mesIndex] += consumo;
                     if (entry.subestacao != null) {
                         count = Math.max(count, getIndex(dados, entry.subestacao) + 1);
@@ -186,7 +186,7 @@ public class Main {
     }
 
     // Método para encontrar ou criar uma entrada para a subestação
-    private static Dados findOrCreateEntry(Dados[] dados, String subestacao, int count) {
+    private static Dados EncontrarSubestacao(Dados[] dados, String subestacao, int count) {
         int index = getIndex(dados, subestacao);
         if (index != -1) {
             return dados[index];
