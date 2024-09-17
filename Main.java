@@ -21,7 +21,8 @@ public class Main {
             System.out.println("3 - Subestação com menor consumo mensal:");
             System.out.println("4 - Total geral de consumo de energia ao longo do ano:");
             System.out.println("5 - Média de consumo mensal por subestação:");
-            System.out.println("6 - Sair");
+            System.out.println("6 - Lista do consumo total mensal ordenada:");
+            System.out.println("7 - Sair");
             System.out.print("Escolha uma opção: ");
             int opcao = scanner.nextInt();
             scanner.nextLine();  // Limpa o buffer
@@ -62,7 +63,15 @@ public class Main {
                         mediaConsumoMensalPorSubestacao(dados);
                     }
                     break;
-                case 6:
+                    case 6:
+                    arquivoSelecionado = escolhendoArquivo();
+                    if (arquivoSelecionado != null) {
+                        Dados[] dados = processarCSV("/workspaces/T1_ALEST/casosdeteste/" + arquivoSelecionado);
+                        listaConsumoTotalMensalOrdenada(dados);
+                    }
+                    break;
+                    
+                case 7:
                     System.out.println("Saindo...");
                     continuar = false;
                     break;
@@ -343,5 +352,41 @@ public class Main {
         }
     }
 
-    
+    // Método para exibir a lista do consumo total mensal ordenada
+    private static void listaConsumoTotalMensalOrdenada(Dados[] dados) {
+        int[] consumoTotalMensal = new int[12];
+
+        // Calcula o total de consumo para cada mês
+        for (Dados entry : dados) {
+            if (entry != null) {
+                for (int i = 0; i < entry.consumos.length; i++) {
+                    consumoTotalMensal[i] += entry.consumos[i];
+                }
+            }
+        }
+
+        // Cria um array para armazenar os meses e os totais
+        int[] indices = new int[12];
+        for (int i = 0; i < 12; i++) {
+            indices[i] = i;
+        }
+
+        // Ordena os meses baseando-se no consumo total em ordem decrescente
+        for (int i = 0; i < indices.length - 1; i++) {
+            for (int j = i + 1; j < indices.length; j++) {
+                if (consumoTotalMensal[indices[i]] < consumoTotalMensal[indices[j]]) {
+                    int temp = indices[i];
+                    indices[i] = indices[j];
+                    indices[j] = temp;
+                }
+            }
+        }
+
+        // Exibe a lista ordenada
+        System.out.println("Lista do consumo total mensal ordenada");
+        System.out.println("Mês Consumo total");
+        for (int i : indices) {
+            System.out.printf("%-3s %d%n", MESES[i].substring(0, 3), consumoTotalMensal[i]);
+        }
+    }
 }
